@@ -1,47 +1,21 @@
-# Lidar to camera projection of KITTI
-## Intro
-[中文博客](https://www.cnblogs.com/azureology/p/14004131.html)
+# Lidar to camera projection of KITTI using oneMath
 
-This is a Python implementation of how to project point cloud from Velodyne coordinates into the left color image with KITTI data set.
-## Dependices
-```
-matplotlib == 3.1.3
-numpy == 1.18.1
-```
+Fork of the [azureology/kitti-velo2cam](https://github.com/azureology/kitti-velo2cam)
+demo with a version where the main transformation computation is offloaded using
+[oneMath](https://github.com/uxlfoundation/oneMath). See the original repo for
+context and details.
 
-Also tested with
-```
-matplotlib == 3.4.3
-numpy == 1.23.5
-```
-## Usage
-Download KITTI dataset and place `proj_velo2cam.py` in the root path.
-CLI is also supported, e.g. run with frame 000999
-```
-python3 proj_velo2cam.py 999
-```
-## Quick demo
-Just clone the whole repo and run `proj_velo2cam.py`.
-By default, run with frame 000007 with path below:
-```
-.
-├── data_object_image_2
-│   └── testing
-│       ├── image_2
-│       │   └── 000007.png
-│       └── projection
-│           └── 000007.png
-├── data_object_velodyne
-│   └── testing
-│       └── velodyne
-│           └── 000007.bin
-├── proj_velo2cam.py
-├── readme.md
-└── testing
-    └── calib
-        └── 000007.txt
-```
-## Original image
-![](./data_object_image_2/testing/image_2/000007.png)
-## Projection
-![](./data_object_image_2/testing/projection/000007.png)
+Dependencies:
+* a SYCL compiler (tested with DPC++ only)
+* a build of oneMath with the backends of choice (tested MKL and cuBLAS backends)
+* pybind11
+* numpy
+
+Steps to run:
+* Compile with `make` in the main directory. Use `make CXX=clang++` if using open-source DPC++.
+* Run with `ONEAPI_DEVICE_SELECTOR=<value> python proj_velo2cam_onemath.py` where `<value>` is the offload device of choice.
+* Similarly, run benchmarking with `ONEAPI_DEVICE_SELECTOR=<value> python bench.py.
+It takes two optional command-line arguments. The first one is the number of points
+to transform. If a second argument `cm` is added, only the col_major implementation
+is benchmarked. This is to facilitate running on backends which don't support
+row_major like cuBLAS.
